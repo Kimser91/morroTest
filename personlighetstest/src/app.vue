@@ -21,6 +21,8 @@
     </div>
     <div v-else>
       <h2 class="text-center">Din personlighetstype er: <span class="text-success">{{ result }}</span></h2>
+      <h3 class="text-center"> For mer detaljer om din personlighetstype besøk:</h3>
+      <a href="https://www.belbin.com/about/belbin-team-roles" target="_blank" class="btn btn-secondary mt-3">Les mer</a>
       <button class="btn btn-secondary mt-3" @click="resetQuiz">Ta testen på nytt</button>
     </div>
   </div>
@@ -106,6 +108,10 @@ const resetQuiz = () => {
 </script>
 
 <style>
+.btn {
+  margin: 5px;
+}
+
 .container {
   text-align: center;
 }
