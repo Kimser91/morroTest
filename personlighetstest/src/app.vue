@@ -1,9 +1,11 @@
 <template>
   <div class="container d-flex flex-column justify-content-center align-items-center vh-100">
-    <h1 class="text-center">Personlighetstest</h1>
+    <h1 class="text-center">Personlighetstest</h1><br/>
+    <h2 class="text-center">Gi poeng etter hva som stemmer best med deg!</h2><br/>
+    <h4 class="text-center"> 1 Ikke Enig - 5 Helt Enig</h4>
     <div v-if="!result">
       <div v-if="questions.length > 0" class="card p-4 text-center fixed-card">
-        <p class="question-text"><strong>{{ questions[currentQuestionIndex].text }}</strong></p>
+        <p class="question-text"><strong>{{ currentQuestionIndex +1 }}. {{ questions[currentQuestionIndex].text }}</strong></p>
         <div class="d-flex justify-content-center">
           <span>1</span>
           <input type="range" min="1" max="5" step="1" class="form-range mx-3" v-model="userAnswers[currentQuestionIndex]">
@@ -109,9 +111,8 @@ const resetQuiz = () => {
 }
 
 .fixed-card {
-  width: 50%;
-  min-width: 300px;
-  height: 200px; /* Fast høyde for å hindre hopping */
+  width: 600px;
+  height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: center;
