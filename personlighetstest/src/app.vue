@@ -1,18 +1,24 @@
 <template>
-  <div class="container mt-5">
+  <div class="container d-flex flex-column justify-content-center align-items-center vh-100">
     <h1 class="text-center">Personlighetstest</h1>
     <div v-if="!result">
-      <div v-for="(question, index) in questions" :key="index" class="mb-3">
-        <p><strong>{{ question.text }}</strong></p>
-        <div v-for="option in question.options" :key="option" class="form-check">
-          <input class="form-check-input" type="radio" :name="`question-${index}`" :value="option" v-model="userAnswers[index]">
-          <label class="form-check-label">{{ option }}</label>
+      <div v-if="questions.length > 0" class="card p-4 text-center fixed-card">
+        <p class="question-text"><strong>{{ questions[currentQuestionIndex].text }}</strong></p>
+        <div class="d-flex justify-content-center">
+          <span>1</span>
+          <input type="range" min="1" max="5" step="1" class="form-range mx-3" v-model="userAnswers[currentQuestionIndex]">
+          <span>5</span>
         </div>
+        <button class="btn btn-primary mt-3" @click="nextQuestion">
+          {{ currentQuestionIndex < questions.length - 1 ? 'Neste' : 'Se resultat' }}
+        </button>
       </div>
-      <button class="btn btn-primary mt-3" @click="calculateResult">Se resultat</button>
+      <div v-else>
+        <p>Laster spørsmål...</p>
+      </div>
     </div>
     <div v-else>
-      <h2 class="text-center mt-4">Din personlighetstype er: <span class="text-success">{{ result }}</span></h2>
+      <h2 class="text-center">Din personlighetstype er: <span class="text-success">{{ result }}</span></h2>
       <button class="btn btn-secondary mt-3" @click="resetQuiz">Ta testen på nytt</button>
     </div>
   </div>
@@ -22,82 +28,100 @@
 import { ref } from 'vue';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// Definerer 30 spørsmål
 const questions = [
-  { text: 'Hvordan jobber du i et team?', options: ['Jeg bringer nye ideer', 'Jeg samarbeider godt', 'Jeg delegerer oppgaver', 'Jeg er kreativ og løser problemer'] },
-  { text: 'Hvordan tar du beslutninger?', options: ['Jeg tar raske beslutninger', 'Jeg analyserer nøye før jeg velger', 'Jeg stoler på ekspertise', 'Jeg følger en plan'] },
-  { text: 'Hvordan håndterer du press?', options: ['Jeg holder meg rolig', 'Jeg presser meg selv til perfeksjon', 'Jeg tilpasser meg raskt', 'Jeg fokuserer på målet'] },
-  { text: 'Hvordan foretrekker du å lære nye ting?', options: ['Gjennom erfaring', 'Ved å lese teori', 'Ved å se på andre', 'Ved å prøve og feile'] },
-  { text: 'Hva motiverer deg mest?', options: ['Å lykkes i oppgavene mine', 'Å hjelpe andre', 'Å finne kreative løsninger', 'Å samarbeide'] },
-  { text: 'Hvordan reagerer du på kritikk?', options: ['Jeg tar det til meg og forbedrer meg', 'Jeg blir defensiv', 'Jeg ignorerer det', 'Jeg diskuterer det'] },
-  { text: 'Hva er viktigst i en jobb for deg?', options: ['Frihet til å være kreativ', 'Trygghet og stabilitet', 'Muligheten til å lede', 'Å jobbe i et godt team'] },
-  { text: 'Hvordan håndterer du stress?', options: ['Jeg planlegger og prioriterer', 'Jeg jobber hardere', 'Jeg tar pauser og reflekterer', 'Jeg fokuserer på det viktigste'] },
-  { text: 'Hvordan samarbeider du med andre?', options: ['Jeg tar initiativ og leder', 'Jeg støtter og hjelper andre', 'Jeg analyserer og gir innspill', 'Jeg følger en strukturert plan'] },
-  { text: 'Hva gjør du når du møter et problem?', options: ['Jeg finner en kreativ løsning', 'Jeg analyserer situasjonen grundig', 'Jeg spør eksperter om råd', 'Jeg tar en beslutning raskt'] },
-  { text: 'Hva slags oppgaver liker du best?', options: ['De som krever kreativitet', 'De som gir konkrete resultater', 'De som lar meg samarbeide', 'De som krever logisk tenkning'] },
-  { text: 'Hvordan håndterer du en uforutsett situasjon?', options: ['Jeg improviserer', 'Jeg følger en plan', 'Jeg spør andre om råd', 'Jeg tar en rask beslutning'] },
-  { text: 'Hva slags arbeidsmiljø foretrekker du?', options: ['Kreativt og dynamisk', 'Strukturert og stabilt', 'Samarbeidsorientert', 'Utfordrende og resultatfokusert'] },
-  { text: 'Hvordan forholder du deg til regler?', options: ['Jeg følger dem nøye', 'Jeg tilpasser meg etter behov', 'Jeg utfordrer dem hvis nødvendig', 'Jeg ser dem som veiledning'] },
-  { text: 'Hva gjør deg mest frustrert?', options: ['Mangel på kreativitet', 'Dårlig planlegging', 'Uklare mål', 'Manglende samarbeid'] },
-  { text: 'Hva gir deg energi?', options: ['Å prøve noe nytt', 'Å løse en utfordring', 'Å hjelpe andre', 'Å se fremgang'] },
-  { text: 'Hvordan reagerer du på endringer?', options: ['Jeg tilpasser meg raskt', 'Jeg foretrekker stabilitet', 'Jeg analyserer situasjonen først', 'Jeg ser det som en utfordring'] },
-  { text: 'Hva beskriver deg best?', options: ['Kreativ og innovativ', 'Analytisk og nøyaktig', 'Samarbeidsvillig og hjelpsom', 'Målrettet og effektiv'] },
+  { text: 'Jeg liker å jobbe i team.' },
+  { text: 'Jeg tar raske beslutninger.' },
+  { text: 'Jeg håndterer stress godt.' },
+  { text: 'Jeg liker å planlegge ting på forhånd.' },
+  { text: 'Jeg foretrekker å følge regler fremfor å improvisere.' },
+  { text: 'Jeg liker å ta initiativ i prosjekter.' },
+  { text: 'Jeg er kreativ og finner nye løsninger.' },
+  { text: 'Jeg trives med å jobbe alene.' },
+  { text: 'Jeg liker å analysere problemer grundig før jeg handler.' },
+  { text: 'Jeg foretrekker å følge en fast struktur i arbeidet mitt.' },
+  { text: 'Jeg føler meg komfortabel med å ta beslutninger for en gruppe.' },
+  { text: 'Jeg er flink til å lytte til andres meninger.' },
+  { text: 'Jeg liker å perfeksjonere arbeidet mitt før jeg leverer det.' },
+  { text: 'Jeg trives med å lære nye ferdigheter og spesialisere meg.' },
+  { text: 'Jeg er flink til å tilpasse meg endringer.' },
+  { text: 'Jeg liker å delegere oppgaver til andre.' },
+  { text: 'Jeg foretrekker å jobbe med detaljer fremfor helheten.' },
+  { text: 'Jeg er god på å samarbeide og få teamet til å fungere godt.' },
+  { text: 'Jeg liker å jobbe raskt og effektivt.' },
+  { text: 'Jeg verdsetter nøyaktighet og presisjon i arbeidet mitt.' },
+  { text: 'Jeg motiveres av å oppnå gode resultater.' },
+  { text: 'Jeg trives best med praktiske oppgaver fremfor teoretiske analyser.' },
+  { text: 'Jeg foretrekker å følge en langsiktig plan fremfor å improvisere.' },
+  { text: 'Jeg liker å hjelpe andre med deres oppgaver.' },
+  { text: 'Jeg trives best i en strukturert arbeidsdag.' },
+  { text: 'Jeg liker å eksperimentere med nye måter å gjøre ting på.' },
+  { text: 'Jeg liker å jobbe med mennesker og bygge relasjoner.' },
+  { text: 'Jeg er flink til å se løsninger der andre ser problemer.' },
+  { text: 'Jeg liker å sette klare mål for meg selv og andre.' }
 ];
 
-// Oppretter et array for brukerens svar, fylt med nullverdier
-const userAnswers = ref(Array(questions.length).fill(null));
-
-// Lagrer resultatet som en reaktiv verdi
+const userAnswers = ref(Array(questions.length).fill(3));
+const currentQuestionIndex = ref(0);
 const result = ref(null);
 
-// Mapping fra svaralternativer til personlighetstyper
-const personalities = {
-  'Jeg bringer nye ideer': 'Resource Investigator',
-  'Jeg samarbeider godt': 'Teamworker',
-  'Jeg delegerer oppgaver': 'Co-ordinator',
-  'Jeg er kreativ og løser problemer': 'Plant',
-  'Jeg tar raske beslutninger': 'Shaper',
-  'Jeg analyserer nøye før jeg velger': 'Monitor Evaluator',
-  'Jeg stoler på ekspertise': 'Specialist',
-  'Jeg følger en plan': 'Implementer',
-  'Jeg holder meg rolig': 'Monitor Evaluator',
-  'Jeg presser meg selv til perfeksjon': 'Completer Finisher',
-  'Jeg tilpasser meg raskt': 'Resource Investigator',
-  'Jeg fokuserer på målet': 'Shaper',
+const nextQuestion = () => {
+  if (currentQuestionIndex.value < questions.length - 1) {
+    currentQuestionIndex.value++;
+  } else {
+    calculateResult();
+  }
 };
 
-// Beregner resultat basert på flest valgte svar
 const calculateResult = () => {
-  // Oppretter et objekt for å telle antall valg per svar
-  const counts = {};
-  
-  userAnswers.value.forEach(answer => {
-    if (answer) {
-      // Øker telleren for hvert valgt svar
-      counts[answer] = (counts[answer] || 0) + 1;
-    }
+  const personalityScores = {
+    'Resource Investigator': 0,
+    'Teamworker': 0,
+    'Co-ordinator': 0,
+    'Plant': 0,
+    'Shaper': 0,
+    'Monitor Evaluator': 0,
+    'Specialist': 0,
+    'Implementer': 0,
+    'Completer Finisher': 0
+  };
+
+  userAnswers.value.forEach((score, index) => {
+    const personalities = Object.keys(personalityScores);
+    personalityScores[personalities[index % personalities.length]] += score;
   });
 
-  // Hvis ingen svar er valgt, ikke vis resultat
-  if (Object.keys(counts).length === 0) {
-    result.value = 'Ingen valg ble gjort';
-    return;
-  }
+  const bestPersonality = Object.keys(personalityScores).reduce((a, b) => 
+    personalityScores[a] > personalityScores[b] ? a : b);
 
-  // Finner de mest valgte svarene
-  const maxCount = Math.max(...Object.values(counts));
-  const mostChosenAnswers = Object.keys(counts).filter(answer => counts[answer] === maxCount);
-
-  // Velger tilfeldig en av de mest valgte svarene hvis flere har like mange stemmer
-  const finalAnswer = mostChosenAnswers[Math.floor(Math.random() * mostChosenAnswers.length)];
-
-  // Henter personlighetstypen eller setter til 'Ukjent' hvis ingen valg er gjort
-  result.value = personalities[finalAnswer] || 'Ukjent';
+  result.value = bestPersonality;
 };
 
-// Nullstiller quizen ved å tilbakestille svar og resultat
 const resetQuiz = () => {
   result.value = null;
-  userAnswers.value.fill(null);
+  currentQuestionIndex.value = 0;
+  userAnswers.value.fill(3);
 };
 </script>
+
+<style>
+.container {
+  text-align: center;
+}
+
+.fixed-card {
+  width: 50%;
+  min-width: 300px;
+  height: 200px; /* Fast høyde for å hindre hopping */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.question-text {
+  min-height: 60px; /* Setter en fast høyde for spørsmålsteksten */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+</style>
